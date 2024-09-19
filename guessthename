@@ -1,0 +1,139 @@
+'use client'
+
+import { useState } from 'react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { toast, useToast } from "@/components/ui/use-toast"
+
+const WORD_LENGTH = 4
+const MAX_GUESSES = 6
+const CORRECT_WORD = 'SAFI'
+
+type GuessResult = ('correct' | 'present' | 'absent')[]
+
+export default function WordleGame() {
+  const [guesses, setGuesses] = useState<string[]>([])
+  const [currentGuess, setCurrentGuess] = useState('')
+  const [gameOver, setGameOver] = useState(false)
+  const { toast } = useToast()
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase()
+    if (value.length <= WORD_LENGTH) {
+      setCurrentGuess(value)
+    }
+  }
+
+  const handleSubmitGuess = () => {
+    if (currentGuess.length !== WORD_LENGTH) {
+      toast({
+        title: "Invalid guess",
+        description: `Your guess must be ${WORD_LENGTH} letters long.`,
+        variant: "destructive",
+      })
+      return
+    }
+
+    const newGuesses = [...guesses, currentGuess]
+    setGuesses(newGuesses)
+    setCurrentGuess('')
+
+    if (currentGuess === CORRECT_WORD) {
+      setGameOver(true)
+      toast({
+        title: "Congratulations!",
+        description: "You've guessed the word correctly!",
+        variant: "default",
+      })
+    } else if (newGuesses.length >= MAX_GUESSES) {
+      setGameOver(true)
+      toast({
+        title: "Game Over",
+        description: `The correct word was ${CORRECT_WORD}.`,
+        variant: "destructive",
+      })
+    }
+  }
+
+  const checkGuess = (guess: string): GuessResult => {
+    const result: GuessResult = []
+    const correctLetters = CORRECT_WORD.split('')
+
+    for (let i = 0; i < WORD_LENGTH; i++) {
+      if (guess[i] === CORRECT_WORD[i]) {
+        result[i] = 'correct'
+        correctLetters[i] = ''
+      } else if (CORRECT_WORD.includes(guess[i]) && correctLetters.includes(guess[i])) {
+        result[i] = 'present'
+        correctLetters[correctLetters.indexOf(guess[i])] = ''
+      } else {
+        result[i] = 'absent'
+      }
+    }
+
+    return result
+  }
+
+  const getBackgroundColor = (status: GuessResult[number]) => {
+    switch (status) {
+      case 'correct':
+        return 'bg-green-500'
+      case 'present':
+        return 'bg-yellow-500'
+      case 'absent':
+        return 'bg-gray-500'
+      default:
+        return 'bg-white'
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <h1 className="text-4xl font-bold mb-8">Wordle Clone</h1>
+      <div className="grid grid-cols-4 gap-2 mb-4">
+        {Array(MAX_GUESSES).fill(null).map((_, rowIndex) => (
+          guesses[rowIndex] ? (
+            checkGuess(guesses[rowIndex]).map((status, colIndex) => (
+              <div
+                key={`${rowIndex}-${colIndex}`}
+                className={`w-12 h-12 flex items-center justify-center text-white font-bold text-2xl ${getBackgroundColor(status)}`}
+              >
+                {guesses[rowIndex][colIndex]}
+              </div>
+            ))
+          ) : (
+            Array(WORD_LENGTH).fill(null).map((_, colIndex) => (
+              <div
+                key={`${rowIndex}-${colIndex}`}
+                className="w-12 h-12 border-2 border-gray-300"
+              />
+            ))
+          )
+        ))}
+      </div>
+      <div className="flex gap-2 mb-4">
+        <Input
+          type="text"
+          value={currentGuess}
+          onChange={handleInputChange}
+          maxLength={WORD_LENGTH}
+          className="text-center text-2xl font-bold uppercase"
+          disabled={gameOver}
+        />
+        <Button onClick={handleSubmitGuess} disabled={gameOver || currentGuess.length !== WORD_LENGTH}>
+          Guess
+        </Button>
+      </div>
+      {gameOver && (
+        <Button onClick={() => window.location.reload()}>Play Again</Button>
+      )}
+    </div>
+  )
+}
+
+
+git init
+git add .
+git commit -m "initial commit"
+git remote add origin (repository remote git url here)
+git push -u origin master
