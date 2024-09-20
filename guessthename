@@ -132,8 +132,4 @@ export default function WordleGame() {
 }
 
 
-git init
-git add .
-git commit -m "initial commit"
-git remote add origin (repository remote git url here)
-git push -u origin master
+
